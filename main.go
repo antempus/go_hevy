@@ -1,9 +1,11 @@
 package main
 
 import (
-	hvy "client/hH"
 	"context"
-	"fmt"
+	"github.com/kelseyhightower/envconfig"
+	hvy "go_hevy/client"
+	"go_hevy/support"
+	"log/slog"
 	"net/http"
 )
 
@@ -13,21 +15,40 @@ const UrlHost = "<TBD>"
 const Token = "<TBD>"
 
 func main() {
+	var hvyConfig HevyConfig
+	var gblConfig GlobalConfig
+	err := envconfig.Process("HEVY", &hvyConfig)
+	if err != nil {
+		panic(err)
+	}
+
+	err = envconfig.Process("", &gblConfig)
+	if err != nil {
+		panic(err)
+	}
+
 	ctx := context.Background()
 	httpClient := &http.Client{}
+	logger := slog.Logger{}
+
+	obsvr := support.Observer{
+		LogLevel: gblConfig.LogLevel,
+		Logger:   logger,
+	}
 
 	hevyClient := &hvy.HevyClient{
-		ApiUrl:     UrlHost,
-		ApiKey:     Token,
+		ApiUrl:     hvyConfig.ApiHost,
+		ApiKey:     hvyConfig.ApiKey,
 		ApiVersion: "v1",
 		Context:    ctx,
 		Client:     httpClient,
 	}
 
 	params := hvy.PaginationParams{}
-	templates, _ := hevyClient.GetExerciseTemplates(params)
-	fmt.Print(templates.ExerciseTemplates)
-}
+	templates, err := hevyClient.GetExerciseTemplates(params)
 
-//TIP See GoLand help at <a href="https://www.jetbrains.com/help/go/">jetbrains.com/help/go/</a>.
-// Also, you can try interactive lessons for GoLand by selecting 'Help | Learn IDE Features' from the main menu.
+	if err != nil {
+		panic(err)
+	}
+	obsvr.LogJson(templates)
+}

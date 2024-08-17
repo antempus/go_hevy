@@ -44,9 +44,9 @@ type PaginationParams struct {
 	PageSize string
 }
 
-func (h HevyClient) GetExerciseTemplates(params PaginationParams) (PaginatedExerciseTemplateResponse, error) {
+func (h HevyClient) GetExerciseTemplates(params PaginationParams) (*PaginatedExerciseTemplateResponse, error) {
 	// setup url and returns
-	resourceUrl := h.ApiUrl + h.ApiVersion + "/exercise_templates"
+	resourceUrl := h.ApiUrl + "/" + h.ApiVersion + "/exercise_templates"
 	var paginatedResponse = PaginatedExerciseTemplateResponse{}
 
 	_json, _ := json.Marshal(params)
@@ -57,22 +57,21 @@ func (h HevyClient) GetExerciseTemplates(params PaginationParams) (PaginatedExer
 
 	if err != nil {
 		fmt.Print(err.Error())
-		return paginatedResponse, err
+		return nil, err
 	}
 
 	body, err := io.ReadAll(resp.Body)
-	dec := json.NewDecoder(resp.Body)
 
-	fmt.Print(dec)
 	if err != nil {
 		fmt.Print(err.Error())
-		return paginatedResponse, err
+		return nil, err
 	}
+
 	jsonErr := json.Unmarshal(body, &paginatedResponse)
 	if jsonErr != nil {
 		fmt.Print(jsonErr.Error())
-		return paginatedResponse, jsonErr
+		return &paginatedResponse, jsonErr
 	}
 
-	return paginatedResponse, nil
+	return &paginatedResponse, nil
 }
