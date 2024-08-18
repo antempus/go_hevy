@@ -64,10 +64,10 @@ func (h HevyClient) GetExerciseTemplate(exerciseId string) (*ExerciseTemplate, e
 	return &exerciseTemplate, nil
 }
 
-func (h HevyClient) GetExerciseTemplates(page int32, pageSize int32) (*PaginatedExerciseTemplateResponse, error) {
+func (h HevyClient) GetExerciseTemplates(params PaginationParams) (*PaginatedExerciseTemplateResponse, error) {
 	queryParams := map[string]string{
-		"page":     fmt.Sprintf("%d", page),
-		"pageSize": fmt.Sprintf("%d", pageSize),
+		"page":     fmt.Sprintf("%d", params.Page),
+		"pageSize": fmt.Sprintf("%d", params.PageSize),
 	}
 	request, err := h.Requester.setupRequest(http.MethodGet, "exercise_templates/", nil, queryParams)
 

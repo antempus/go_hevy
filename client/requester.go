@@ -21,12 +21,6 @@ func (r *Requester) setupRequest(method string, path string, input interface{}, 
 	// TODO: @antempus Determine if this is the correct way to leverage "base path" + "resource path"
 	// TODO: Add Logging
 	targetUrl := r.Url.RawPath + path
-	if queryParams != nil {
-		targetUrl = targetUrl + "?"
-		for key, value := range queryParams {
-			targetUrl = targetUrl + key + "=" + value + "&"
-		}
-	}
 
 	var buf io.ReadWriter
 	if input != nil {
@@ -48,6 +42,13 @@ func (r *Requester) setupRequest(method string, path string, input interface{}, 
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("User-Agent", r.UserAgent)
 
+	if queryParams != nil {
+		q := req.URL.Query()
+		for key, value := range queryParams {
+			q.Add(key, value)
+		}
+		req.URL.RawQuery = q.Encode()
+	}
 	for k, v := range r.Headers {
 		req.Header.Add(k, v)
 	}

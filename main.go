@@ -51,8 +51,9 @@ func main() {
 		Context:   ctx,
 		Client:    httpClient,
 	}
+	params := hvy.PaginationParams{Page: 2}
 
-	result, err := hevyClient.GetExerciseTemplates(1, 1)
+	result, err := hevyClient.GetExerciseTemplates(params)
 	if err != nil {
 		panic(err)
 	}
