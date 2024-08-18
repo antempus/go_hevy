@@ -28,7 +28,7 @@ type ExerciseTemplate struct {
 
 type PaginatedExerciseTemplateResponse struct {
 	Page              int32              `json:"page"`
-	PageSize          int32              `json:"page_size"`
+	PageCount         int32              `json:"page_count"`
 	ExerciseTemplates []ExerciseTemplate `json:"exercise_templates"`
 }
 

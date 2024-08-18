@@ -2,9 +2,7 @@ package client
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"time"
 )
@@ -37,58 +35,59 @@ type HevyClient struct {
 }
 
 type PaginationParams struct {
-	Page     string
-	PageSize string
+	Page     int32 `json:"page,omitempty"`
+	PageSize int32 `json:"pageSize,omitempty"`
 }
 
 func (h HevyClient) GetExerciseTemplate(exerciseId string) (*ExerciseTemplate, error) {
-	request, err := h.Requester.setupRequest(http.MethodGet, "exercise_templates/"+exerciseId, nil)
-	resp, err := h.Client.Do(request)
-	if err != nil {
-		fmt.Print(err.Error())
-		return nil, err
-	}
-
-	body, err := io.ReadAll(resp.Body)
-
+	request, err := h.Requester.setupRequest(http.MethodGet, "exercise_templates/"+exerciseId, nil, map[string]string{})
 	if err != nil {
 		fmt.Print(err.Error())
 		return nil, err
 	}
 
 	var exerciseTemplate ExerciseTemplate
-	jsonErr := json.Unmarshal(body, &exerciseTemplate)
 
-	if jsonErr != nil {
-		fmt.Print(jsonErr.Error())
-		return &exerciseTemplate, jsonErr
+	resp, err := h.Requester.do(request, exerciseTemplate)
+	if err != nil {
+		fmt.Print(err.Error())
+		return nil, err
+	}
+
+	// TODO: Improve status code/body handling when non 2XX
+	if resp.StatusCode >= 299 {
+		respErr := fmt.Errorf("request unsuccessful, status code: %d", resp.StatusCode)
+		fmt.Print(respErr.Error())
+		return nil, respErr
 	}
 
 	return &exerciseTemplate, nil
 }
 
-func (h HevyClient) GetExerciseTemplates(params PaginationParams) (*PaginatedExerciseTemplateResponse, error) {
-
-	request, err := h.Requester.setupRequest(http.MethodGet, "exercise_templates/", params)
-	resp, err := h.Client.Do(request)
-
-	if err != nil {
-		fmt.Print(err.Error())
-		return nil, err
+func (h HevyClient) GetExerciseTemplates(page int32, pageSize int32) (*PaginatedExerciseTemplateResponse, error) {
+	queryParams := map[string]string{
+		"page":     fmt.Sprintf("%d", page),
+		"pageSize": fmt.Sprintf("%d", pageSize),
 	}
-	// setup url and returns
+	request, err := h.Requester.setupRequest(http.MethodGet, "exercise_templates/", nil, queryParams)
 
-	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Print(err.Error())
 		return nil, err
 	}
 	var paginatedResponse PaginatedExerciseTemplateResponse
-	jsonErr := json.Unmarshal(body, &paginatedResponse)
 
-	if jsonErr != nil {
-		fmt.Print(jsonErr.Error())
-		return &paginatedResponse, jsonErr
+	resp, err := h.Requester.do(request, &paginatedResponse)
+	if err != nil {
+		fmt.Print(err.Error())
+		return nil, err
+	}
+
+	// TODO: Improve status code/body handling when non 2XX
+	if resp.StatusCode >= 299 {
+		respErr := fmt.Errorf("request unsuccessful, status code: %d", resp.StatusCode)
+		fmt.Print(respErr.Error())
+		return nil, respErr
 	}
 
 	return &paginatedResponse, nil

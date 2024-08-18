@@ -27,7 +27,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
 	ctx := context.Background()
 	httpClient := &http.Client{}
 	logger := slog.Logger{}
@@ -44,16 +43,16 @@ func main() {
 		},
 		HttpClient: httpClient,
 		UserAgent:  "antempus/go_hevy@v0.0.1",
+		Context:    ctx,
 	}
+
 	hevyClient := &hvy.HevyClient{
 		Requester: requester,
 		Context:   ctx,
 		Client:    httpClient,
 	}
 
-	params := hvy.PaginationParams{}
-	result, err := hevyClient.GetExerciseTemplates(params)
-
+	result, err := hevyClient.GetExerciseTemplates(1, 1)
 	if err != nil {
 		panic(err)
 	}
