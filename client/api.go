@@ -1,7 +1,6 @@
 package client
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -32,11 +31,9 @@ type HevyAPI interface {
 }
 
 type HevyClient struct {
-	ApiKey     string
-	ApiVersion string
-	ApiUrl     string
-	Context    context.Context
-	Client     *http.Client
+	Requester Requester
+	Context   context.Context
+	Client    *http.Client
 }
 
 type PaginationParams struct {
@@ -44,17 +41,9 @@ type PaginationParams struct {
 	PageSize string
 }
 
-func (h HevyClient) GetExerciseTemplates(params PaginationParams) (*PaginatedExerciseTemplateResponse, error) {
-	// setup url and returns
-	resourceUrl := h.ApiUrl + "/" + h.ApiVersion + "/exercise_templates"
-	var paginatedResponse = PaginatedExerciseTemplateResponse{}
-
-	_json, _ := json.Marshal(params)
-	inputBody := bytes.NewReader(_json)
-	request, _ := http.NewRequest(http.MethodGet, resourceUrl, inputBody)
-	request.Header.Add("api-key", h.ApiKey)
+func (h HevyClient) GetExerciseTemplate(exerciseId string) (*ExerciseTemplate, error) {
+	request, err := h.Requester.setupRequest(http.MethodGet, "exercise_templates/"+exerciseId, nil)
 	resp, err := h.Client.Do(request)
-
 	if err != nil {
 		fmt.Print(err.Error())
 		return nil, err
@@ -67,7 +56,36 @@ func (h HevyClient) GetExerciseTemplates(params PaginationParams) (*PaginatedExe
 		return nil, err
 	}
 
+	var exerciseTemplate ExerciseTemplate
+	jsonErr := json.Unmarshal(body, &exerciseTemplate)
+
+	if jsonErr != nil {
+		fmt.Print(jsonErr.Error())
+		return &exerciseTemplate, jsonErr
+	}
+
+	return &exerciseTemplate, nil
+}
+
+func (h HevyClient) GetExerciseTemplates(params PaginationParams) (*PaginatedExerciseTemplateResponse, error) {
+
+	request, err := h.Requester.setupRequest(http.MethodGet, "exercise_templates/", params)
+	resp, err := h.Client.Do(request)
+
+	if err != nil {
+		fmt.Print(err.Error())
+		return nil, err
+	}
+	// setup url and returns
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Print(err.Error())
+		return nil, err
+	}
+	var paginatedResponse PaginatedExerciseTemplateResponse
 	jsonErr := json.Unmarshal(body, &paginatedResponse)
+
 	if jsonErr != nil {
 		fmt.Print(jsonErr.Error())
 		return &paginatedResponse, jsonErr

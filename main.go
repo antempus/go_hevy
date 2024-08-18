@@ -7,6 +7,7 @@ import (
 	"go_hevy/support"
 	"log/slog"
 	"net/http"
+	"net/url"
 )
 
 // TIP To run your code, right-click the code and select <b>Run</b>. Alternatively, click
@@ -36,19 +37,25 @@ func main() {
 		Logger:   logger,
 	}
 
+	requester := hvy.Requester{
+		Url: &url.URL{RawPath: hvyConfig.ApiHost + "/v1/"},
+		Headers: map[string]string{
+			"api-key": hvyConfig.ApiKey,
+		},
+		HttpClient: httpClient,
+		UserAgent:  "antempus/go_hevy@v0.0.1",
+	}
 	hevyClient := &hvy.HevyClient{
-		ApiUrl:     hvyConfig.ApiHost,
-		ApiKey:     hvyConfig.ApiKey,
-		ApiVersion: "v1",
-		Context:    ctx,
-		Client:     httpClient,
+		Requester: requester,
+		Context:   ctx,
+		Client:    httpClient,
 	}
 
 	params := hvy.PaginationParams{}
-	templates, err := hevyClient.GetExerciseTemplates(params)
+	result, err := hevyClient.GetExerciseTemplates(params)
 
 	if err != nil {
 		panic(err)
 	}
-	obsvr.LogJson(templates)
+	obsvr.LogJson(result)
 }
