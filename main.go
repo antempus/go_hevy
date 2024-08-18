@@ -57,4 +57,6 @@ func main() {
 		panic(err)
 	}
 	obsvr.LogJson(result)
+
+	// TODO: @antempus - Setup Tests for client
 }
